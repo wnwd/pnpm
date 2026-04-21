@@ -1,0 +1,58 @@
+name: Build and push Docker image
+
+on:
+  push:
+    tags:
+      - 'node*-pnpm*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read versions
+        id: ver
+        run: |
+          source versions.env
+          echo "node=$NODE_VERSION"           >> "$GITHUB_OUTPUT"
+          echo "pnpm=$PNPM_VERSION"           >> "$GITHUB_OUTPUT"
+          echo "node_major=${NODE_VERSION%%.*}" >> "$GITHUB_OUTPUT"
+          echo "pnpm_major=${PNPM_VERSION%%.*}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          build-args: |
+            NODE_VERSION=${{ steps.ver.outputs.node }}
+            PNPM_VERSION=${{ steps.ver.outputs.pnpm }}
+          tags: |
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ steps.ver.outputs.node }}-${{ steps.ver.outputs.pnpm }}
+            ghcr.io/${{ github.repository }}:${{ steps.ver.outputs.node_major }}-${{ steps.ver.outputs.pnpm_major }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/node-pnpm:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/node-pnpm:${{ steps.ver.outputs.node }}-${{ steps.ver.outputs.pnpm }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/node-pnpm:${{ steps.ver.outputs.node_major }}-${{ steps.ver.outputs.pnpm_major }}

@@ -1,0 +1,63 @@
+name: Check for version updates
+
+on:
+  schedule:
+    - cron: '0 2 * * *'   # daily at 02:00 UTC
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get latest Node.js LTS version
+        id: node
+        run: |
+          LATEST=$(curl -s https://nodejs.org/dist/index.json \
+            | jq -r '[.[] | select(.lts != false)] | .[0].version | ltrimstr("v")')
+          echo "version=$LATEST" >> "$GITHUB_OUTPUT"
+
+      - name: Get latest pnpm version
+        id: pnpm
+        run: |
+          LATEST=$(curl -s https://registry.npmjs.org/pnpm/latest | jq -r '.version')
+          echo "version=$LATEST" >> "$GITHUB_OUTPUT"
+
+      - name: Read current versions
+        id: current
+        run: |
+          source versions.env
+          echo "node=$NODE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "pnpm=$PNPM_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Determine if update is needed
+        id: check
+        run: |
+          if [ "${{ steps.node.outputs.version }}" != "${{ steps.current.outputs.node }}" ] || \
+             [ "${{ steps.pnpm.outputs.version }}" != "${{ steps.current.outputs.pnpm }}" ]; then
+            echo "updated=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "updated=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Update versions.env
+        if: steps.check.outputs.updated == 'true'
+        run: |
+          printf 'NODE_VERSION=%s\nPNPM_VERSION=%s\n' \
+            "${{ steps.node.outputs.version }}" \
+            "${{ steps.pnpm.outputs.version }}" > versions.env
+
+      - name: Commit, tag, and push
+        if: steps.check.outputs.updated == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add versions.env
+          git commit -m "chore: node ${{ steps.node.outputs.version }}, pnpm ${{ steps.pnpm.outputs.version }}"
+          TAG="node${{ steps.node.outputs.version }}-pnpm${{ steps.pnpm.outputs.version }}"
+          git tag "$TAG"
+          git push origin HEAD --tags
