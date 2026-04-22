@@ -53,6 +53,6 @@ jobs:
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ steps.ver.outputs.node }}-${{ steps.ver.outputs.pnpm }}
             ghcr.io/${{ github.repository }}:${{ steps.ver.outputs.node_major }}-${{ steps.ver.outputs.pnpm_major }}
-            ${{ github.GITHUB_REPOSITORY_OWNER }}/node-pnpm:latest
-            ${{ github.GITHUB_REPOSITORY_OWNER }}/node-pnpm:${{ steps.ver.outputs.node }}-${{ steps.ver.outputs.pnpm }}
-            ${{ github.GITHUB_REPOSITORY_OWNER }}/node-pnpm:${{ steps.ver.outputs.node_major }}-${{ steps.ver.outputs.pnpm_major }}
+            ${{ github.repository_owner }}/node-pnpm:latest
+            ${{ github.repository_owner }}/node-pnpm:${{ steps.ver.outputs.node }}-${{ steps.ver.outputs.pnpm }}
+            ${{ github.repository_owner }}/node-pnpm:${{ steps.ver.outputs.node_major }}-${{ steps.ver.outputs.pnpm_major }}
