@@ -6,8 +6,8 @@ Auto-updated Docker image bundling the latest stable **Node.js LTS** and **pnpm*
 
 | Registry | Repository |
 |----------|------------|
-| ghcr.io  | `ghcr.io/<owner>/node-pnpm` |
-| Docker Hub | `<owner>/node-pnpm` |
+| ghcr.io  | `ghcr.io/wnwd/node-pnpm` |
+| Docker Hub | `wnwd/node-pnpm` |
 
 ### Tags
 
@@ -21,14 +21,14 @@ Auto-updated Docker image bundling the latest stable **Node.js LTS** and **pnpm*
 
 ```bash
 # Always latest
-docker pull ghcr.io/<owner>/node-pnpm:latest
+docker pull ghcr.io/wnwd/node-pnpm:latest
 
 # Pin to exact versions
-docker pull ghcr.io/<owner>/node-pnpm:24.15.0-10.33.0
+docker pull ghcr.io/wnwd/node-pnpm:24.15.0-10.33.0
 ```
 
 ```dockerfile
-FROM ghcr.io/<owner>/node-pnpm:latest
+FROM ghcr.io/wnwd/node-pnpm:latest
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
